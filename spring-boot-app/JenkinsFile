@@ -3,6 +3,7 @@ pipeline {
   
   environment {
         WORKSPACE = "${env.WORKSPACE}"
+        AWS_DEFAULT_REGION = "us-east-1"
     }
 
   tools {
@@ -10,10 +11,6 @@ pipeline {
     maven 'localMaven'
     jdk 'localJdk'
   }
-
-  environment {
-        AWS_DEFAULT_REGION = "us-east-1"
-    }
 
   // {
   //   docker {
@@ -80,25 +77,25 @@ pipeline {
       }
     }
     
-     stage('Unit Test') {
-          steps {
-              sh 'cd spring-boot-app && mvn test'
-          }
+    stage('Unit Test') {
+         steps {
+             sh 'cd spring-boot-app && mvn test'
+         }
+       }
+    stage('Integration Test') {
+        steps {
+            sh 'cd spring-boot-app && mvn verify -DskipUnitTests'
         }
-     stage('Integration Test') {
-         steps {
-             sh 'cd spring-boot-app && mvn verify -DskipUnitTests'
-         }
-     }
-     stage('Checkstyle Code Analysis') {
-         steps {
-             sh 'cd spring-boot-app && mvn checkstyle:checkstyle'
-         }
-         post {
-             success {
-                 echo 'Generated Analysis Result'
-             }
-         }
+    }
+    stage('Checkstyle Code Analysis') {
+        steps {
+            sh 'cd spring-boot-app && mvn checkstyle:checkstyle'
+        }
+        post {
+            success {
+                echo 'Generated Analysis Result'
+            }
+        }
      
     stage('Static Code Analysis') {
       environment {
@@ -177,9 +174,9 @@ pipeline {
     //         }
     //     }
        
-    // }
+     }
 
 
   }
 }
-}
+
