@@ -217,3 +217,9 @@ Once both the above steps are done click on Save.
         `git push`
 
         #
+
+
+### Docker Registry (ECR)
+- Navigate to AWS and search for ECR service
+- click to create repository (private) --> Provide repo name (jjtech-demo) --> create repo
+- click on **view push commands** to get username and password to push images to repo
