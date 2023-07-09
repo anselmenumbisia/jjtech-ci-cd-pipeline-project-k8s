@@ -172,24 +172,7 @@ pipeline {
         }
       }
     }
-    stage('approve delete of cluster resource') {
-            steps {
-                input "Do you want to Proceed to destroy cluster resources"
-            }
-        }
-    
-    stage("Destroy k8s resources"){
-          
-        steps {  
-          script {
-            dir('k8s-manifests'){  
-            sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"    
-            sh "kubectl destroy -f ."
-      }
-        }
-      }
-    } 
-
+  
     stage('approve destroy for terraform') {
             steps {
                 input "Do you want to Proceed to destroy terraform resources"
