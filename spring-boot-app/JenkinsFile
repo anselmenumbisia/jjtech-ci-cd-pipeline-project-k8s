@@ -69,12 +69,7 @@ pipeline {
         // builds the project and create a JAR file
         sh 'cd spring-boot-app && mvn -U clean package'
       }
-      // post {
-      //    success {
-      //        echo 'archiving....'
-      //        archiveArtifacts artifacts: 'target/**/*.jar', followSymlinks: false
-      //    }
-      // }
+      
     }
     
     stage('Unit Test') {
@@ -120,6 +115,28 @@ pipeline {
        }
      }
 
+
+    stage('Build and Push Docker Image') {
+      environment {
+        awsAccountId = '389029577690'
+        region = 'us-east-1'
+        repositoryName = 'Jjjtech-cicd-pipeline'
+        dockerImageTag = "${BUILD_NUMBER}"
+        ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
+      }
+      steps {
+        script {
+            // Build the Docker image
+            sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
+
+            // Authenticate and push the Docker image to ECR
+                sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
+                sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+      }
+    }
+
+    } 
     // stage('Build and Push Docker Image') {
     //   environment {
     //     DOCKER_IMAGE = "abhishekf5/ultimate-cicd:${BUILD_NUMBER}"

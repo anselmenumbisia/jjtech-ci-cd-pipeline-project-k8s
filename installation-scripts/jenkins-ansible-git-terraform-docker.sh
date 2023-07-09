@@ -46,4 +46,11 @@ sudo service docker start
 sudo usermod -aG docker jenkins
 sudo systemctl restart docker
 
-
+# Install kubectl
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl.sha256
+sha256sum -c kubectl.sha256
+openssl sha1 -sha256 kubectl
+sudo chmod +x ./kubectl
+sudo mkdir -p $HOME/bin && sudo cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+sudo echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
