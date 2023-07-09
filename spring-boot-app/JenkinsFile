@@ -165,7 +165,7 @@ pipeline {
       }
         steps {    
             sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"     
-            sh "aws eks update-kubeconfig --name ${cluster-name} --region ${region}"
+            sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
             sh "cd k8s-manifests && kubectl apply -f ."
       }
       }
