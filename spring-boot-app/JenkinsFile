@@ -155,21 +155,7 @@ pipeline {
                 '''
             }
         }
-    
-    // stage("install kubectl"){
-    //   steps {
-    //             sh '''
-    //                 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
-    //                 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl.sha256
-    //                 sha256sum -c kubectl.sha256
-    //                 openssl sha1 -sha256 kubectl
-    //                 sudo chmod +x ./kubectl
-    //                 sudo mkdir -p $HOME/bin && sudo cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
-    //                 sudo echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
-    //             '''
-    //         }
-    //   }
-      
+        
 
     stage("Deploy to EKS"){
         environment {
@@ -186,18 +172,34 @@ pipeline {
         }
       }
     }
+    stage('approve delete of cluster resource') {
+            steps {
+                input "Do you want to Proceed to destroy cluster resources"
+            }
+        }
+    
+    stage("Destroy k8s resources"){
+          
+        steps {  
+          script {
+            dir('k8s-manifests'){      
+            sh "kubectl destroy -f ."
+      }
+        }
+      }
+    } 
 
-    // stage('approve destroy') {
-    //         steps {
-    //             input "Do you want to Proceed to destroy terraform resources"
-    //         }
-    //     }
-    //     stage('destroy') {
-    //         steps {
-    //             unstash 'terraform-plan'
-    //             sh 'terraform destroy --auto-approve'
-    //         }
-    //     }
+    stage('approve destroy for terraform') {
+            steps {
+                input "Do you want to Proceed to destroy terraform resources"
+            }
+        }
+        stage('destroy') {
+            steps {
+                unstash 'terraform-plan'
+                sh 'terraform destroy --auto-approve'
+            }
+        }
 
 
   }

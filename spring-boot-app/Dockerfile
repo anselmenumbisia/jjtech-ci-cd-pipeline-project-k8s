@@ -7,7 +7,7 @@ ARG artifact=target/*.jar
 
 WORKDIR /opt/app
 
-COPY ${artifact} app.jar
+COPY ${artifact} app.jarkub
 
 # This should not be changed
 ENTRYPOINT ["java","-jar","app.jar"]
