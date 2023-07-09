@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.abhishek</groupId>
+    <groupId>com.jjtech</groupId>
     <artifactId>spring-boot-demo</artifactId>
     <version>1.0</version>
 
@@ -48,6 +48,22 @@
         </dependency>
 
     </dependencies>
+     
+     <distributionManagement>
+    <site>
+      <id>site-server</id>
+      <name>Test Project Site</name>
+      <url>file:///tmp/maven-project-site</url>
+    </site>
+    <snapshotRepository>
+            <id>nexus</id>
+            <url>http://172.31.89.238:8081/repository/maven-snapshots/</url>          <!--Replace the Nexus Private IP in this line-->
+        </snapshotRepository>
+        <repository>
+            <id>nexus</id>
+            <url>http://172.31.89.238:8081/repository/maven-releases/</url>           <!--Replace the Nexus Private IP in this line-->
+        </repository>
+    </distributionManagement>
 
     <build>
 
