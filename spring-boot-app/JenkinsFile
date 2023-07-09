@@ -138,6 +138,7 @@ pipeline {
 
     } 
     
+    
     // stage("update K8s File"){
     //   environment {
     //     git_repo_name = "jjtech-ci-cd-pipeline-project-k8s"
@@ -157,6 +158,21 @@ pipeline {
     //         }
     //   }
     //   }
+    
+    stage("install kubectl"){
+      steps {
+                sh '''
+                    curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
+                    curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl.sha256
+                    sha256sum -c kubectl.sha256
+                    openssl sha1 -sha256 kubectl
+                    sudo chmod +x ./kubectl
+                    sudo mkdir -p $HOME/bin && sudo cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+                    sudo echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
+                '''
+            }
+      }
+      
 
     stage("Deploy to EKS"){
         environment {
@@ -169,9 +185,10 @@ pipeline {
             sh "cd k8s-manifests && kubectl apply -f ."
       }
       }
+
     // stage('approve destroy') {
     //         steps {
-    //             input "Please review the Terraform plan and click 'Proceed' to destroy it"
+    //             input "Do you want to Proceed to destroy terraform resources"
     //         }
     //     }
     //     stage('destroy') {
