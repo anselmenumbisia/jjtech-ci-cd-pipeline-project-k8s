@@ -133,6 +133,8 @@ pipeline {
                 sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
                 sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
                 sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh " docker rmi ${repositoryName}:${dockerImageTag}"
       }
     }
 

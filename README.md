@@ -1,14 +1,11 @@
-# Jenkins CI/CD Pipeline Project Architecture (Java Web Application)
-![CompleteCICDProject!](https://lucid.app/publicSegments/view/a6ef3233-7dda-483a-a662-d8ec90395ba3/image.png)
-
 # Jenkins Complete CI/CD Pipeline Environment Setup 
 
 ## CICD Applications setup
 1) ###### GitHub setup
-    Fork GitHub Repository by using the existing repo "devops-fully-automated" (https://github.com/cvamsikrishna11/devops-fully-automated)     
+    Fork GitHub Repository by using the existing repo "jjtech-ci-cd-pipeline-project-k8s" (https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git)     
     - Go to GitHub (github.com)
     - Login to your GitHub Account
-    - **Fork repository "devops-fully-automated" (https://github.com/cvamsikrishna11/devops-fully-automated) & name it "devops-fully-automated"**
+    - **Fork repository "jjtech-ci-cd-pipeline-project-k8s" (https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git)**
     - Clone your newly created repo to your local
 
 
@@ -37,7 +34,10 @@
     - Key pair: Select or create a new keypair
     - User data (Copy the following user data): https://github.com/cvamsikrishna11/devops-fully-automated/blob/installations/nexus-setup.sh
     - Launch Instance
-4) 
+
+5) ######  S3 and Dynamodb
+- create s3 bucket and dynamodb table for terraform backend. Partition key for dynamo db must be "LockID"
+- Replace values for s3 and dynamodb in provider.tf file ln 4-12
 
 ### Jenkins setup
 1) #### Access Jenkins
@@ -215,15 +215,23 @@ Once both the above steps are done click on Save.
 
         `git push`
 
-        #
-
-
 ### Docker Registry (ECR)
 - Navigate to AWS and search for ECR service
 - click to create repository (private) --> Provide repo name (jjtech-demo) --> create repo
 - click on **view push commands** to get username and password to push images to repo
 
 ### Update aws cli to version 2
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install --updade
+- ssh into jenkins server and query version of aws cli by running "aws --version", if version 1, update with below commands
+- curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+- unzip awscliv2.zip
+- sudo ./aws/install --updade
+
+### Modify values in jenkinsfile
+- update values in stage "Build and Push Docker Image" with account ID, Repository name, region, 
+
+
+### Access Application
+- Navigate to ec2 in AWS management console
+- Get public of workernode serves for cluster
+- modify security group to allow all inbound traffic from everywhere
+- copy pulic ip and run on browser e.g http://example_ip:30080
