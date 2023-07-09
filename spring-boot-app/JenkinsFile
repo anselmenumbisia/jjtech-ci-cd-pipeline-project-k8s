@@ -182,7 +182,8 @@ pipeline {
           
         steps {  
           script {
-            dir('k8s-manifests'){      
+            dir('k8s-manifests'){  
+            sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"    
             sh "kubectl destroy -f ."
       }
         }
