@@ -178,14 +178,20 @@ pipeline {
                 input "Do you want to Proceed to destroy terraform resources"
             }
         }
-        stage('destroy') {
-            steps {
-                unstash 'terraform-plan'
-                sh 'terraform destroy --auto-approve'
+    stage('destroy') {
+        steps {
+            script{
+              dir ('terraform/eks-cluster-ec2') {
+              unstash 'terraform-plan'
+              sh 'terraform destroy -auto-approve tfplan'
+              }
+           }
             }
         }
 
 
   }
 }
+
+
 
