@@ -12,12 +12,6 @@ pipeline {
     jdk 'localJdk'
   }
 
-  // {
-  //   docker {
-  //     image 'abhishekf5/maven-abhishek-docker-agent:v1'
-  //     args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
-  //   }
-  // }
   stages {
     stage('Git Checkout') {
       steps {
@@ -30,7 +24,7 @@ pipeline {
      steps {
        script{
          dir ('terraform/eks-cluster-ec2') {
-           sh 'terraform init -upgrade'
+           sh 'terraform init'
            sh 'terraform fmt'
            sh 'terraform validate'
            sh 'terraform plan -out=tfplan'
@@ -51,6 +45,7 @@ pipeline {
                 input "Please review the Terraform plan and click 'Proceed' to apply it"
             }
         }
+
     stage('apply') {
         steps {
           script{
@@ -65,7 +60,7 @@ pipeline {
 
     stage('Build and Test') {
       steps {
-        sh 'ls -ltr'
+        // sh 'ls -ltr'
         // builds the project and create a JAR file
         sh 'cd spring-boot-app && mvn -U clean package'
       }
@@ -94,7 +89,7 @@ pipeline {
     }
     stage('Static Code Analysis') {
       environment {
-        SONAR_URL = "http://54.86.204.155:9000/"
+        SONAR_URL = "http://54.89.99.82:9000/"
       }
       steps {
         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {

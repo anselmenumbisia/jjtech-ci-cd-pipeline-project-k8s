@@ -97,6 +97,7 @@
         * Version: Keep the default version as it is 
 
     - **Terraform** --> Add Terraform --> Make sure **Install automatically** is enabled --> Install from Bintray.com --> Fill the below values:
+     * Name: terraform
      * Version: Leabve it to default and change to linux (amd64)
      * click on save
 
@@ -143,7 +144,7 @@ Copy your SonarQube Public IP Address and paste on the browser = ExternalIP:9000
     - Login into SonarQube
     - Go to Administration --> Configuration --> Webhooks --> Click on Create
     - Name: Jenkins-Webhook
-    - URL: http://REPLACE-WITH-JENKINS-PRIVATE-IP:8080/sonarqube-webhook/           (replace Jenkins private IP here)
+    - URL: http://REPLACE-WITH-JENKINS-PRIVATE-IP:8080/sonarqube-webhook/ (replace Jenkins private IP here)
     - Click on Create
 
 
@@ -192,7 +193,7 @@ Once both the above steps are done click on Save.
 
 1) #### SonarQube IP change
     - Go back to your local, open your "jjtech-ci-cd-pipeline-project-k8s" project on VSCODE
-    - Open "Jenkinsfile" & Replace the SonarQube server private ip on line number 105
+    - Open "Jenkinsfile" & Replace the SonarQube server private ip on line number 92 (where you have SONAR_URL)
     - Save the changes in both files
     - Finally push changes to repo
         
@@ -204,7 +205,7 @@ Once both the above steps are done click on Save.
 
 2) #### Nexus IP's change
     - Go back to your local, open your "jjtech-ci-cd-pipeline-project-k8s" project on VSCODE
-    - Open "pom.xml" & Replace the nexus server private ip on line numbers 61 & 65
+    - Open "pom.xml" & Replace the nexus server private ip on line numbers 60 & 64
     - Open nexus-setup/settings.xml & Replace the nexus server private ip on line numbers 21
     - Save the changes in both files
     - Finally push changes to repo
@@ -224,7 +225,7 @@ Once both the above steps are done click on Save.
 - ssh into jenkins server and query version of aws cli by running "aws --version", if version 1, update with below commands
 - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 - unzip awscliv2.zip
-- sudo ./aws/install --updade
+-sudo ./aws/install --update
 
 ### Modify values in jenkinsfile
 - update values in stage "Build and Push Docker Image" with account ID, Repository name, region, 
