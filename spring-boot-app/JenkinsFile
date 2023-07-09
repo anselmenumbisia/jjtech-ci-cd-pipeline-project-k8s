@@ -96,7 +96,7 @@ pipeline {
                 echo 'Generated Analysis Result'
             }
         }
-     
+    }
     stage('Static Code Analysis') {
       environment {
         SONAR_URL = "http://54.86.204.155:9000/"
@@ -173,8 +173,6 @@ pipeline {
     //             sh 'terraform destroy --auto-approve'
     //         }
     //     }
-       
-     }
 
 
   }
