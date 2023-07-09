@@ -4,7 +4,7 @@ pipeline {
   environment {
         WORKSPACE = "${env.WORKSPACE}"
     }
-    
+
   tools {
     terraform 'terraform'
     maven 'localMaven'
@@ -82,17 +82,17 @@ pipeline {
     
      stage('Unit Test') {
           steps {
-              sh 'mvn test'
+              sh 'cd spring-boot-app && mvn test'
           }
         }
      stage('Integration Test') {
          steps {
-             sh 'mvn verify -DskipUnitTests'
+             sh 'cd spring-boot-app && mvn verify -DskipUnitTests'
          }
      }
      stage('Checkstyle Code Analysis') {
          steps {
-             sh 'mvn checkstyle:checkstyle'
+             sh 'cd spring-boot-app && mvn checkstyle:checkstyle'
          }
          post {
              success {

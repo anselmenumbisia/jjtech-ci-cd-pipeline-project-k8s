@@ -75,7 +75,7 @@
     - Repositories
         - Repository URL: FILL YOUR OWN REPO URL (that we created by importing in the first step)
         - Branch Specifier (blank for 'any'): */main
-        - Script Path: Jenkinsfile
+        - Script Path: spring-boot-app/Jenkinsfile
     - Save
 
 4)  #### Global tools configuration:
@@ -176,14 +176,14 @@ Copy your Nexus Public IP Address and paste on the browser = http:://NexusServer
 ### GitHub webhook
 
 1) #### Add jenkins webhook to github
-    - Access your repo **devops-fully-automated** on github
+    - Access your repo **jjtech-ci-cd-pipeline-project-k8s** on github
     - Goto Settings --> Webhooks --> Click on Add webhook 
     - Payload URL: **http://REPLACE-JENKINS-SERVER-PUBLIC-IP:8080/github-webhook/**             (Note: The IP should be public as GitHub is outside of the AWS VPC where Jenkins server is hosted)
     - Click on Add webhook
 
 2) #### Configure on the Jenkins side to pull based on the event
     - Access your jenkins server, pipeline **app-cicd-pipeline**
-    - Once pipeline is accessed --> Click on Configure --> In the General section --> **Select GitHub project checkbox** and fill your repo URL of the project devops-fully-automated.
+    - Once pipeline is accessed --> Click on Configure --> In the General section --> **Select GitHub project checkbox** and fill your repo URL of the project jjtech-ci-cd-pipeline-project-k8s.
     - Scroll down --> In the Build Triggers section -->  **Select GitHub hook trigger for GITScm polling checkbox**
 
 Once both the above steps are done click on Save.
@@ -192,8 +192,8 @@ Once both the above steps are done click on Save.
 ### Codebase setup
 
 1) #### SonarQube IP change
-    - Go back to your local, open your "devops-fully-automated" project on VSCODE
-    - Open "Jenkinsfile" & Replace the SonarQube server private ip on line number 69
+    - Go back to your local, open your "jjtech-ci-cd-pipeline-project-k8s" project on VSCODE
+    - Open "Jenkinsfile" & Replace the SonarQube server private ip on line number 105
     - Save the changes in both files
     - Finally push changes to repo
         
@@ -204,8 +204,8 @@ Once both the above steps are done click on Save.
         `git push`
 
 2) #### Nexus IP's change
-    - Go back to your local, open your "devops-fully-automated" project on VSCODE
-    - Open "pom.xml" & Replace the nexus server private ip on line numbers 32 & 36
+    - Go back to your local, open your "jjtech-ci-cd-pipeline-project-k8s" project on VSCODE
+    - Open "pom.xml" & Replace the nexus server private ip on line numbers 61 & 65
     - Open nexus-setup/settings.xml & Replace the nexus server private ip on line numbers 21
     - Save the changes in both files
     - Finally push changes to repo
