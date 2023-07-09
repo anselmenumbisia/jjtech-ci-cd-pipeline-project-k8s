@@ -138,20 +138,37 @@ pipeline {
 
     } 
     
-    
-    stage("install kubectl"){
-      steps {
+    stage('Install kubectl') {
+            steps {
                 sh '''
-                    curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
-                    curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl.sha256
-                    sha256sum -c kubectl.sha256
-                    openssl sha1 -sha256 kubectl
-                    sudo chmod +x ./kubectl
-                    sudo mkdir -p $HOME/bin && sudo cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
-                    sudo echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
+                    # Specify the kubectl version
+                    KUBECTL_VERSION="v1.24.0"
+
+                    # Download kubectl binary
+                    curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+
+                    # Make the kubectl binary executable
+                    sudo chmod +x kubectl
+
+                    # Move kubectl binary to a directory in the PATH
+                    sudo mv kubectl /usr/local/bin/
                 '''
             }
-      }
+        }
+    
+    // stage("install kubectl"){
+    //   steps {
+    //             sh '''
+    //                 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
+    //                 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl.sha256
+    //                 sha256sum -c kubectl.sha256
+    //                 openssl sha1 -sha256 kubectl
+    //                 sudo chmod +x ./kubectl
+    //                 sudo mkdir -p $HOME/bin && sudo cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+    //                 sudo echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
+    //             '''
+    //         }
+    //   }
       
 
     stage("Deploy to EKS"){
