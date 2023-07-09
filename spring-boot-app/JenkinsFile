@@ -183,7 +183,7 @@ pipeline {
             script{
               dir ('terraform/eks-cluster-ec2') {
               unstash 'terraform-plan'
-              sh 'terraform destroy -auto-approve tfplan'
+              sh 'terraform destroy -auto-approve'
               }
            }
             }

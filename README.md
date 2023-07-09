@@ -30,7 +30,6 @@
     - User data (Copy the following user data): https://github.com/cvamsikrishna11/devops-fully-automated/blob/installations/sonarqube-setup.sh
     - Launch Instance
 
-
 4) ###### Nexus
     - Create an **Amazon Linux 2** VM instance and call it "Nexus" !!! Do not use a linux2023 AMI
     - Instance type: t2.medium
@@ -38,7 +37,7 @@
     - Key pair: Select or create a new keypair
     - User data (Copy the following user data): https://github.com/cvamsikrishna11/devops-fully-automated/blob/installations/nexus-setup.sh
     - Launch Instance
-
+4) 
 
 ### Jenkins setup
 1) #### Access Jenkins
