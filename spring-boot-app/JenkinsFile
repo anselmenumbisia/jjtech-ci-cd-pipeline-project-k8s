@@ -72,7 +72,7 @@ pipeline {
       post {
          success {
              echo 'archiving....'
-             archiveArtifacts artifacts: '**.jar', followSymlinks: false
+             archiveArtifacts artifacts: 'target/**/*.jar', followSymlinks: false
          }
       }
     }
