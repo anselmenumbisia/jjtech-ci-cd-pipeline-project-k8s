@@ -33,14 +33,14 @@ pipeline {
            sh 'terraform init'
            sh 'terraform fmt'
            sh 'terraform validate'
-           sh 'terraform plan -out=tfplan'
-           stash includes: 'tfplan', name: 'terraform-plan'
+           sh 'terraform plan -out=terraform/eks-cluster-ec2/tfplan'
+           stash includes: 'terraform/eks-cluster-ec2/tfplan', name: 'terraform-plan'
          }
        }
      }
      post {
          success {
-             archiveArtifacts artifacts: 'tfplan', onlyIfSuccessful: true
+             archiveArtifacts artifacts: 'terraform/eks-cluster-ec2/tfplan', onlyIfSuccessful: true
          }
     }
 
@@ -56,7 +56,7 @@ pipeline {
           script{
             dir ('terraform/eks-cluster-ec2') {
             unstash 'terraform-plan'
-            sh 'terraform apply -auto-approve tfplan'
+            sh 'terraform apply -auto-approve terraform/eks-cluster-ec2/tfplan'
             }
         }
     }
