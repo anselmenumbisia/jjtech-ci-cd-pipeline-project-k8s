@@ -161,8 +161,8 @@ pipeline {
       }       
         steps {  
           script {
-            dir('k8s-manifests'){  
-            sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"     
+            sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"
+            dir('k8s-manifests'){      
             sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
             sh "kubectl apply -f ."
       }
