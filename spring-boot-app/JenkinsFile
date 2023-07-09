@@ -1,9 +1,20 @@
 pipeline {
   agent any
-
-  tools {
+  
+  environment {
+        WORKSPACE = "${env.WORKSPACE}"
+    }
     
+  tools {
+    terraform 'terraform'
+    maven 'localMaven'
+    jdk 'localJdk'
   }
+
+  environment {
+        AWS_DEFAULT_REGION = "us-east-1"
+    }
+
   // {
   //   docker {
   //     image 'abhishekf5/maven-abhishek-docker-agent:v1'
@@ -11,29 +22,113 @@ pipeline {
   //   }
   // }
   stages {
-    stage('Checkout') {
+    stage('Git Checkout') {
       steps {
-        sh 'echo passed'
-        //git branch: 'main', url: 'https://github.com/iam-veeramalla/Jenkins-Zero-To-Hero.git'
+        sh 'Cloning the application code...'
+        git branch: 'main', url: 'https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git'
       }
     }
+
+    stage('create eks cluster') {
+     steps {
+       script{
+         dir ('terraform/eks-cluster-ec2') {
+           sh 'terraform init'
+           sh 'terraform fmt'
+           sh 'terraform validate'
+           sh 'terraform plan -out=tfplan'
+           stash includes: 'tfplan', name: 'terraform-plan'
+         }
+       }
+     }
+     post {
+         success {
+             archiveArtifacts artifacts: 'tfplan', onlyIfSuccessful: true
+         }
+    }
+
+    }
+
+    stage('approval') {
+            steps {
+                input "Please review the Terraform plan and click 'Proceed' to apply it"
+            }
+        }
+    stage('apply') {
+        steps {
+          script{
+            dir ('terraform/eks-cluster-ec2') {
+            unstash 'terraform-plan'
+            sh 'terraform apply -auto-approve tfplan'
+            }
+        }
+    }
+
+    }
+
     stage('Build and Test') {
       steps {
         sh 'ls -ltr'
-        // build the project and create a JAR file
-        sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean package'
+        // builds the project and create a JAR file
+        sh 'cd spring-boot-app && mvn -U clean package'
+      }
+      post {
+         success {
+             echo 'archiving....'
+             archiveArtifacts artifacts: '**/*.jar', followSymlinks: false
+         }
       }
     }
+    
+     stage('Unit Test') {
+          steps {
+              sh 'mvn test'
+          }
+        }
+     stage('Integration Test') {
+         steps {
+             sh 'mvn verify -DskipUnitTests'
+         }
+     }
+     stage('Checkstyle Code Analysis') {
+         steps {
+             sh 'mvn checkstyle:checkstyle'
+         }
+         post {
+             success {
+                 echo 'Generated Analysis Result'
+             }
+         }
+     
     stage('Static Code Analysis') {
       environment {
-        SONAR_URL = "http://34.201.116.83:9000"
+        SONAR_URL = "http://54.86.204.155:9000/"
       }
       steps {
-        withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
-          sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
+          sh 'spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
         }
       }
     }
+
+    stage('Quality Gate') {
+        steps {
+            waitForQualityGate abortPipeline: true
+        }
+      }
+
+    stage('Upload artifact to Nexus') {
+       steps {
+           withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
+           sh "sed -i \"s/.*<username><\\/username>/<username>$USER_NAME<\\/username>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
+           sh "sed -i \"s/.*<password><\\/password>/<password>$PASSWORD<\\/password>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
+           sh 'cp ${WORKSPACE}/nexus-setup/settings.xml /var/lib/jenkins/.m2'
+           sh 'mvn clean deploy -DskipTests'
+           }
+          
+       }
+     }
+
     stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "abhishekf5/ultimate-cicd:${BUILD_NUMBER}"
@@ -69,5 +164,22 @@ pipeline {
             }
         }
     }
+
+    // stage('approve destroy') {
+    //         steps {
+    //             input "Please review the Terraform plan and click 'Proceed' to destroy it"
+    //         }
+    //     }
+    //     stage('destroy') {
+    //         steps {
+    //             unstash 'terraform-plan'
+    //             sh 'terraform destroy --auto-approve'
+    //         }
+    //     }
+       
+    // }
+
+
   }
 }
+

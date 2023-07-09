@@ -92,9 +92,14 @@
         * Name: **localJdk**
         * Download URL for binary archive: **https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_linux-x64_bin.tar.gz**
         * Subdirectory of extracted archive: **jdk-11.0.1**
+
     - **Maven** --> Add Maven --> Make sure **Install automatically** is enabled --> Install from Apache --> Fill the below values
         * Name: **localMaven**
         * Version: Keep the default version as it is 
+
+    - **Terraform** --> Add Terraform --> Make sure **Install automatically** is enabled --> Install from Bintray.com --> Fill the below values:
+     * Version: Leabve it to default and change to linux (amd64)
+     * click on save
 
 
 5)  #### Credentials setup(SonarQube, Nexus):
