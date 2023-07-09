@@ -21,7 +21,7 @@ pipeline {
   stages {
     stage('Git Checkout') {
       steps {
-        sh 'Cloning the application code...'
+        echo 'Cloning the application code...'
         git branch: 'main', url: 'https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git'
       }
     }
