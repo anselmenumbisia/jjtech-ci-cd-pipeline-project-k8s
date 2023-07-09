@@ -33,8 +33,8 @@ pipeline {
            sh 'terraform init'
            sh 'terraform fmt'
            sh 'terraform validate'
-           sh 'terraform plan -out=terraform/eks-cluster-ec2/tfplan'
-           stash includes: 'terraform/eks-cluster-ec2/tfplan', name: 'terraform-plan'
+           sh 'terraform plan -out=tfplan'
+           stash includes: 'tfplan', name: 'terraform-plan'
          }
        }
      }
