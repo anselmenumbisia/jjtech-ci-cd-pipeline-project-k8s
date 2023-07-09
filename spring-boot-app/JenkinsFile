@@ -139,26 +139,6 @@ pipeline {
     } 
     
     
-    // stage("update K8s File"){
-    //   environment {
-    //     git_repo_name = "jjtech-ci-cd-pipeline-project-k8s"
-    //     git_user_name = "anselmenumbisia"
-    //   }
-    //   steps {
-    //         withCredentials([string(credentialsId: 'git_token', variable: 'GITHUB_TOKEN')]){
-    //             sh '''
-    //                 git config user.email "jjtech@gmail.com"
-    //                 git config user.name "jjtech"
-    //                 BUILD_NUMBER=${BUILD_NUMBER}
-    //                 sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" k8s-manifests/deployment.yaml
-    //                 git add k8s-manifests/deployment.yaml
-    //                 git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-    //                 git push https://${GITHUB_TOKEN}@github.com/${git_user_name}/${git_repo_name} HEAD:main
-    //             '''
-    //         }
-    //   }
-    //   }
-    
     stage("install kubectl"){
       steps {
                 sh '''
@@ -178,13 +158,17 @@ pipeline {
         environment {
         region = 'us-east-1'
         clusterName = 'jjtech-demo-cluster'
-      }
-        steps {    
+      }       
+        steps {  
+          script {
+            dir('k8s-manifests'){  
             sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"     
             sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
-            sh "cd k8s-manifests && kubectl apply -f ."
+            sh "kubectl apply -f ."
       }
+        }
       }
+    }
 
     // stage('approve destroy') {
     //         steps {
