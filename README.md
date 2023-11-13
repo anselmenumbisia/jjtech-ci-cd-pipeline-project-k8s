@@ -98,14 +98,14 @@
 
     - **Terraform** --> Add Terraform --> Make sure **Install automatically** is enabled --> Install from Bintray.com --> Fill the below values:
      * Name: terraform
-     * Version: Leabve it to default and change to linux (amd64)
+     * Version: Leave it to default and change to linux (amd64)
      * click on save
 
 
 5)  #### Credentials setup(SonarQube, Nexus):
     - Click on Manage Jenkins --> Manage Credentials --> Global credentials (unrestricted) --> Add Credentials
 
-        1)  ###### SonarQube secret token (sonarqube-token)
+        1)  #### SonarQube secret token (sonarqube-token)
             - Kind: Secret text :
                     Generating SonarQube secret token
                     - Login to your SonarQube server (http://sonarserver-public-ip:9000, with the credentials username: **admin** & password: **admin**)
@@ -118,7 +118,7 @@
             - Description: sonarqube-token
             - Click on Create
 
-        2)  ###### Nexus username & password (nexus-credentials)
+        2)  #### Nexus username & password (nexus-credentials)
             - Kind: Username with password                  
             - Username: admin
             - Enable Treat username as secret
