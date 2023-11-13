@@ -225,7 +225,8 @@ Once both the above steps are done click on Save.
 - ssh into jenkins server and query version of aws cli by running "aws --version", if version 1, update with below commands
 - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 - unzip awscliv2.zip
--sudo ./aws/install --update
+
+- sudo ./aws/install --update
 
 ### Modify values in jenkinsfile
 - update values in stage "Build and Push Docker Image" with account ID, Repository name, region, 
