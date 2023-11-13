@@ -231,6 +231,8 @@ Once both the above steps are done click on Save.
 ### Modify values in jenkinsfile
 - update values in stage "Build and Push Docker Image" with account ID, Repository name, region, 
 
+### Run pipeline
+- Navigate back to jenkins and run the pipeline build
 
 ### Access Application
 - Navigate to ec2 in AWS management console
