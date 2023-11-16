@@ -239,3 +239,9 @@ Once both the above steps are done click on Save.
 - Get public of workernode serves for cluster
 - modify security group to allow all inbound traffic from everywhere
 - copy pulic ip and run on browser e.g http://example_ip:30080
+
+
+sudo yum install -y docker
+sudo service docker start
+sudo usermod -aG docker jenkins
+sudo systemctl restart docker
