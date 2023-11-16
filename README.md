@@ -74,7 +74,7 @@
     - Repositories
         - Repository URL: FILL YOUR OWN REPO URL (that we created by importing in the first step)
         - Branch Specifier (blank for 'any'): */main
-        - Script Path: spring-boot-app/Jenkinsfile
+        - Script Path: spring-boot-app/JenkinsFile
     - Save
 
 4)  #### Global tools configuration:
@@ -98,7 +98,7 @@
 
     - **Terraform** --> Add Terraform --> Make sure **Install automatically** is enabled --> Install from Bintray.com --> Fill the below values:
      * Name: terraform
-     * Version: Leave it to default and change to linux (amd64)
+     * Version:  to Terraform 1.5.6 linux (amd64)
      * click on save
 
 
