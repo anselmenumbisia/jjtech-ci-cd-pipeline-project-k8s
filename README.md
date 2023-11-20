@@ -1,4 +1,8 @@
 # Jenkins Complete CI/CD Pipeline Environment Setup 
+## Note: The source code for this demo was configured to work in hte us-east-1 region. To deploy this on another region,
+- open the source code using VS CODE, 
+- click on he search icon on vscode and pass the region "us-east-1" in the SEARCH section and then in the REPLACE section, pass hte name of your OWN REGION. 
+- Click on the symbol next to the REPLACE section to apply the changes to ever file in your source code.
 
 ## CICD Applications setup
 1) ###### GitHub setup
@@ -14,8 +18,8 @@
     - Instance type: t2.large
     - Security Group (Open): 8080, 9100 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
-    - **Attach Jenkins server with IAM role having "AdministratorAccess"**
-    - User data (Copy the following user data): https://github.com/cvamsikrishna11/devops-fully-automated/blob/installations/jenkins-maven-ansible-setup.sh
+    - **Attach Jenkins server with IAM role for ec2 service having "AdministratorAccess"**
+    - User data (Copy the following user data): https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s/blob/main/installation-scripts/jenkins-ansible-git-terraform-docker.sh
     - Launch Instance
     - After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
 
@@ -24,7 +28,7 @@
     - Instance type: t2.medium
     - Security Group (Open): 9000, 9100 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
-    - User data (Copy the following user data): https://github.com/cvamsikrishna11/devops-fully-automated/blob/installations/sonarqube-setup.sh
+    - User data (Copy the following user data): https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s/blob/main/installation-scripts/sonar.sh
     - Launch Instance
 
 4) ###### Nexus
@@ -32,12 +36,12 @@
     - Instance type: t2.medium
     - Security Group (Open): 8081, 9100 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
-    - User data (Copy the following user data): https://github.com/cvamsikrishna11/devops-fully-automated/blob/installations/nexus-setup.sh
+    - User data (Copy the following user data): https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s/blob/main/installation-scripts/nexus.sh
     - Launch Instance
 
 5) ######  S3 and Dynamodb
 - create s3 bucket and dynamodb table for terraform backend. Partition key for dynamo db must be "LockID"
-- Replace values for s3 and dynamodb in provider.tf file ln 4-12
+- Replace values for s3 and dynamodb in provider.tf file in the terraform directory in the source code i.e lines  4-12
 
 ### Jenkins setup
 1) #### Access Jenkins
@@ -236,12 +240,6 @@ Once both the above steps are done click on Save.
 
 ### Access Application
 - Navigate to ec2 in AWS management console
-- Get public of workernode serves for cluster
-- modify security group to allow all inbound traffic from everywhere
-- copy pulic ip and run on browser e.g http://example_ip:30080
-
-
-sudo yum install -y docker
-sudo service docker start
-sudo usermod -aG docker jenkins
-sudo systemctl restart docker
+- Get public of workernode servers for cluster
+- modify security group to allow all inbound traffic from 30080 (The sample app deployed in the cluster is exposed using a NodepOrt service and the nodePort is 30080)
+- copy pulic ip of the cluster worker server and and run on browser. you need to add a colon and the nodePort number in order to access the application on the browser e.g http://example_ip:30080
