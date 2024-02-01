@@ -110,6 +110,16 @@ pipeline {
        }
      }
 
+    stage('Install docker') {
+          steps {
+              sh '''
+                  sh "sudo yum install docker -y" 
+                  sh "sudo systemctl start docker"
+                  sh "sudo systemctl  enable docker"
+                  sh "sudo usermod -a -G docker jenkins"
+              '''
+          }
+      }
 
     stage('Build and Push Docker Image') {
       environment {
@@ -121,6 +131,13 @@ pipeline {
       }
       steps {
         script {
+
+            // // Install docker on jenkins server
+
+            // sh "sudo yum install docker -y" 
+            // sh "sudo systemctl start docker"
+            // sh "sudo systemctl  enable docker"
+            // sh "sudo usermod -a -G docker jenkins"
             // Build the Docker image
             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
 
