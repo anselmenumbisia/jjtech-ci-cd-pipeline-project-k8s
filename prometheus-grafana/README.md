@@ -38,8 +38,8 @@ kubectl get all -n prometheus
 
 6. Edit the prometheus and grafana services by changing service type to **LoadBalancer**
 ```bash
-kubectl edit svc monitoring-grafana
-kubectl edit svc monitoring-prometheus
+kubectl edit svc monitoring-grafana -n prometheus
+kubectl edit svc monitoring-kube-prometheus-prometheus -n prometheus
 ```
 7. To access grafana, grab Loadbalancer endpoint for grafana and run on your browser of choice
 username: admin
