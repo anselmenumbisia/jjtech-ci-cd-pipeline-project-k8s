@@ -56,6 +56,8 @@ kubectl get secret monitoring-grafana -o jsonpath="{.data.admin-password}" | bas
 9. Add a dashboard to grafana
 click on + symbol on left sidebar > import and enter *12740*digit and click on load > select prometheus as default datasource
 
+10. helm uninstall monitoring -n prometheus
+
 
 
 
