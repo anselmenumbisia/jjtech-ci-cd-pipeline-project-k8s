@@ -40,11 +40,11 @@ sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinu
 sudo yum -y install terraform
 
 # Install Docker
-sudo yum update -y
-sudo yum install -y docker
-sudo service docker start
+sudo yum install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo systemctl status docker
 sudo usermod -aG docker jenkins
-sudo systemctl restart docker
 
 # Install kubectl
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.25.9/2023-05-11/bin/linux/amd64/kubectl
