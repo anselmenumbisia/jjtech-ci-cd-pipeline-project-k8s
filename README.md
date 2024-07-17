@@ -27,8 +27,8 @@ git clone https://github.com/anselmenumbisia/jjtech-maven-sonarqube-nexus-promet
 cd jjtech-maven-sonarqube-nexus-prometheus-project/installations
 sh jenkins-install.sh
 ```
-    - Launch Instance
-    - After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
+- Launch Instance
+- After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
 
 3) ###### SonarQube
     - Create an Create an **Ubuntu 20.04** VM instance and call it "SonarQube"
