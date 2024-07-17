@@ -28,6 +28,8 @@ sudo yum upgrade
 # Install Java (Amazon Linux 2023):
 sudo dnf install java-17-amazon-corretto -y
 
+sudo echo "jenkins ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
 # Install Jenkins
 sudo yum install jenkins -y
 
