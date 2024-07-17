@@ -19,7 +19,14 @@
     - Security Group (Open): 8080, 9100 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
     - **Attach Jenkins server with IAM role for ec2 service having "AdministratorAccess"**
-    - User data (Copy the following user data): https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s/blob/main/installation-scripts/jenkins-ansible-git-terraform-docker.sh
+    - User data (Copy the following user data):
+```bash 
+#!/bin/bash
+sudo yum install git -y
+git clone https://github.com/anselmenumbisia/jjtech-maven-sonarqube-nexus-prometheus-project.git
+cd jjtech-maven-sonarqube-nexus-prometheus-project/installations
+sh jenkins-install.sh
+```
     - Launch Instance
     - After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
 
