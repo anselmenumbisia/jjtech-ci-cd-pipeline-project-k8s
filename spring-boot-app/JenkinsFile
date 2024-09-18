@@ -110,14 +110,14 @@ pipeline {
        }
      }
 
-    // stage('Install docker') {
-    //       steps {
-    //               sh "sudo yum install docker -y" 
-    //               sh "sudo systemctl start docker"
-    //               sh "sudo systemctl  enable docker"
-    //               sh "sudo usermod -a -G docker jenkins"
-    //       }
-    //   }
+    stage('Install docker') {
+          steps {
+                  sh "sudo yum install docker -y" 
+                  sh "sudo systemctl start docker"
+                  sh "sudo systemctl enable docker"
+                  sh "sudo usermod -aG docker jenkins"
+          }
+      }
 
     stage('Build and Push Docker Image') {
       environment {
