@@ -113,6 +113,7 @@ pipeline {
     stage('Install docker') {
           steps {
                   sh "sudo usermod -aG docker jenkins"
+                  sh "sudo usermod -aG docker ec2-user"
                   sh "sudo chown root:docker /var/run/docker.sock"
                   sh "sudo chmod 660 /var/run/docker.sock"
                   sh "sudo systemctl restart docker"
@@ -133,10 +134,13 @@ pipeline {
         script {
 
             // Install docker on jenkins server
-            // sh "sudo yum install docker -y" 
-            // sh "sudo systemctl start docker"
-            // sh "sudo systemctl  enable docker"
-            // sh "sudo usermod -aG docker jenkins"
+                  sh "sudo usermod -aG docker jenkins"
+                  sh "sudo usermod -aG docker ec2-user"
+                  sh "sudo chown root:docker /var/run/docker.sock"
+                  sh "sudo chmod 660 /var/run/docker.sock"
+                  sh "sudo systemctl restart docker"
+                  sh "sudo systemctl status docker"
+                  sh "sudo systemctl enable docker"
             // Build the Docker image
             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
 
