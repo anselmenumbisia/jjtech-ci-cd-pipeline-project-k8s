@@ -3,7 +3,9 @@
 - open the source code using VS CODE, 
 - click on he search icon on vscode and pass the region "us-east-1" in the SEARCH section and then in the REPLACE section, pass hte name of your OWN REGION. 
 - Click on the symbol next to the REPLACE section to apply the changes to ever file in your source code.
-
+- Ensure to update the account id in the deployment.yaml file in k8s-manifests directory
+- Place all resources in the default namespace
+  
 ## CICD Applications setup
 1) ###### GitHub setup
     Fork GitHub Repository by using the existing repo "jjtech-ci-cd-pipeline-project-k8s" (https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git)     
@@ -14,24 +16,20 @@
 
 
 2) ###### Jenkins/Maven/Ansible/terraform
-    - Create an an instance with Amazon linux2023 AMI
+    - Create an an instance with Amazon linux2 AMI and not in ami2023
     - Instance type: t2.large
     - Security Group (Open): 8080 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
     - **Attach Jenkins server with IAM role for ec2 service having "AdministratorAccess"**
     - User data (Copy the following user data):
 ```bash 
-#!/bin/bash
-sudo yum install git -y
-git clone https://github.com/anselmenumbisia/jjtech-maven-sonarqube-nexus-prometheus-project.git
-cd jjtech-maven-sonarqube-nexus-prometheus-project/installations
-sh jenkins-install.sh
+https://github.com/awanmbandi/realworld-cicd-pipeline-project/blob/maven-nexus-sonarqube-jenkins-install/jenkins-install.sh
 ```
 - Launch Instance
 - After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
 
 3) ###### SonarQube
-    - Create an Create an **Ubuntu 20.04** VM instance and call it "SonarQube"
+    - Create an Create an **Ubuntu 22.04** VM instance and call it "SonarQube"
     - Instance type: t2.medium
     - Security Group (Open): 9000, 9100 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
