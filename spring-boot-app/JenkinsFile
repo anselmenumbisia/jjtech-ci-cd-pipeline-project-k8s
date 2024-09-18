@@ -130,13 +130,13 @@ pipeline {
       steps {
         script {
 
-            // // Install docker on jenkins server
+            // Install docker on jenkins server
 
-            // sh "sudo yum install docker -y" 
-            // sh "sudo systemctl start docker"
-            // sh "sudo systemctl  enable docker"
-            // sh "sudo usermod -a -G docker jenkins"
-            // Build the Docker image
+            sh "sudo yum install docker -y" 
+            sh "sudo systemctl start docker"
+            sh "sudo systemctl  enable docker"
+            sh "sudo usermod -a -G docker jenkins"
+            Build the Docker image
             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
 
             // Authenticate and push the Docker image to ECR
