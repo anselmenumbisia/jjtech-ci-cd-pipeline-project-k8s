@@ -142,7 +142,7 @@ pipeline {
             // Authenticate and push the Docker image to ECR
                 sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
                 sh "sudo docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "sudo docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
                 sh "sudo docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
                 sh "sudo docker rmi ${repositoryName}:${dockerImageTag}"
       }
