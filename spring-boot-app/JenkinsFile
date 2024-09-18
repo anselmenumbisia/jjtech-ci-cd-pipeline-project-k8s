@@ -135,7 +135,7 @@ pipeline {
             sh "sudo yum install docker -y" 
             sh "sudo systemctl start docker"
             sh "sudo systemctl  enable docker"
-            sh "sudo usermod -aG docker jenkins"
+            sh "sudo usermod -aG docker ec2-user"
             // Build the Docker image
             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
 
