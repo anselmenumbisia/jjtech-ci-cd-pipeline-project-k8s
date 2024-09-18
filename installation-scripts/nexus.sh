@@ -1,39 +1,54 @@
 #!/bin/bash
-# Hardware requirements: AWS Linux 2 with mimum t2.medium type instance & port 8081 should be allowed on the security groups
 
+# Update system packages
+yum update -y
 
-# Nexus setup and installations
-yum install java-1.8.0-openjdk.x86_64 wget -y   
-mkdir -p /opt/nexus/   
-mkdir -p /tmp/nexus/                           
-cd /tmp/nexus/
-NEXUSURL="https://download.sonatype.com/nexus/3/latest-unix.tar.gz"
-wget $NEXUSURL -O nexus.tar.gz
-EXTOUT=`tar xzvf nexus.tar.gz`
-NEXUSDIR=`echo $EXTOUT | cut -d '/' -f1`
-rm -rf /tmp/nexus/nexus.tar.gz
-rsync -avzh /tmp/nexus/ /opt/nexus/
+# Install Java 11 (required for Nexus)
+amazon-linux-extras enable corretto8
+yum install java-11-amazon-corretto -y
+
+# Create a nexus user
 useradd nexus
-chown -R nexus.nexus /opt/nexus 
-cat <<EOT>> /etc/systemd/system/nexus.service
-[Unit]                                                                          
-Description=nexus service                                                       
-After=network.target                                                            
-                                                                  
-[Service]                                                                       
-Type=forking                                                                    
-LimitNOFILE=65536                                                               
-ExecStart=/opt/nexus/$NEXUSDIR/bin/nexus start                                  
-ExecStop=/opt/nexus/$NEXUSDIR/bin/nexus stop                                    
-User=nexus                                                                      
-Restart=on-abort                                                                
-                                                                  
-[Install]                                                                       
-WantedBy=multi-user.target                                                      
+echo "nexus  ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers
 
-EOT
+# Download Nexus
+cd /opt
+wget https://download.sonatype.com/nexus/3/latest-unix.tar.gz
 
-echo 'run_as_user="nexus"' > /opt/nexus/$NEXUSDIR/bin/nexus.rc
-systemctl daemon-reload
-systemctl start nexus
+# Extract Nexus
+tar -zxvf latest-unix.tar.gz
+mv nexus-* nexus
+chown -R nexus:nexus /opt/nexus
+chown -R nexus:nexus /opt/sonatype-work
+
+# Create a nexus service
+cat <<EOF > /etc/systemd/system/nexus.service
+[Unit]
+Description=Nexus service
+After=network.target
+
+[Service]
+Type=forking
+LimitNOFILE=65536
+ExecStart=/opt/nexus/bin/nexus start
+ExecStop=/opt/nexus/bin/nexus stop
+User=nexus
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Set run as nexus user in Nexus configuration
+sed -i 's/#run_as_user=""/run_as_user="nexus"/' /opt/nexus/bin/nexus.rc
+
+# Enable and start the Nexus service
 systemctl enable nexus
+systemctl start nexus
+
+# Open firewall for Nexus (port 8081)
+firewall-cmd --zone=public --add-port=8081/tcp --permanent
+firewall-cmd --reload
+
+# Check Nexus status
+systemctl status nexus
