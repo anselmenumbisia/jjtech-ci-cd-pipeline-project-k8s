@@ -14,9 +14,9 @@
 
 
 2) ###### Jenkins/Maven/Ansible/terraform
-    - Create an **Amazon Linux 2 VM** instance and call it "Jenkins" !!! Do not use a linux2023 AMI
+    - Create an an instance with Amazon linux2023 AMI
     - Instance type: t2.large
-    - Security Group (Open): 8080, 9100 and 22 to 0.0.0.0/0
+    - Security Group (Open): 8080 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
     - **Attach Jenkins server with IAM role for ec2 service having "AdministratorAccess"**
     - User data (Copy the following user data): https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s/blob/main/installation-scripts/jenkins-ansible-git-terraform-docker.sh
@@ -66,6 +66,7 @@
         - **maven Integration**
         - **Terraform**
         - **ssh pipeline**
+        - **pipeline stage view**
         
     - Once all plugins are installed, select **Restart Jenkins when installation is complete and no jobs are running**
 
