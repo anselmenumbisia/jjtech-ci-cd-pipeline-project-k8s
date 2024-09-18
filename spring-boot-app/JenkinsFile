@@ -136,7 +136,7 @@ pipeline {
             sh "sudo systemctl start docker"
             sh "sudo systemctl  enable docker"
             sh "sudo usermod -a -G docker jenkins"
-            Build the Docker image
+            // Build the Docker image
             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
 
             // Authenticate and push the Docker image to ECR
