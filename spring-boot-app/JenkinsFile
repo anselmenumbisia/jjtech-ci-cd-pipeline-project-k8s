@@ -137,7 +137,7 @@ pipeline {
             sh "sudo systemctl  enable docker"
             sh "sudo usermod -aG docker jenkins"
             // Build the Docker image
-            sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
+            sh "cd spring-boot-app && sudo docker build -t ${repositoryName}:${dockerImageTag} ."
 
             // Authenticate and push the Docker image to ECR
                 sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
