@@ -3,7 +3,6 @@
 - open the source code using VS CODE, 
 - click on he search icon on vscode and pass the region "us-east-1" in the SEARCH section and then in the REPLACE section, pass hte name of your OWN REGION. 
 - Click on the symbol next to the REPLACE section to apply the changes to ever file in your source code.
-- Ensure to update the account id in the deployment.yaml file in k8s-manifests directory
 - Place all resources in the default namespace
   
 ## CICD Applications setup
@@ -16,14 +15,18 @@
 
 
 2) ###### Jenkins/Maven/Ansible/terraform
-    - Create an an instance with Amazon linux2 AMI and not in ami2023
+    - Create an an instance with ami linux2023
     - Instance type: t2.large
     - Security Group (Open): 8080 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
     - **Attach Jenkins server with IAM role for ec2 service having "AdministratorAccess"**
     - User data (Copy the following user data):
 ```bash 
-https://github.com/awanmbandi/realworld-cicd-pipeline-project/blob/maven-nexus-sonarqube-jenkins-install/jenkins-install.sh
+#!/bin/bash
+sudo yum install git -y
+git clone https://github.com/anselmenumbisia/jjtech-maven-sonarqube-nexus-prometheus-project.git
+cd jjtech-maven-sonarqube-nexus-prometheus-project/installations
+sh jenkins-install.sh 
 ```
 - Launch Instance
 - After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
@@ -72,6 +75,7 @@ https://github.com/awanmbandi/realworld-cicd-pipeline-project/blob/maven-nexus-s
         - **Terraform**
         - **ssh pipeline**
         - **pipeline stage view**
+        - **Docker**
         
     - Once all plugins are installed, select **Restart Jenkins when installation is complete and no jobs are running**
 
@@ -239,7 +243,7 @@ Once both the above steps are done click on Save.
 - sudo ./aws/install --update
 
 ### Modify values in jenkinsfile
-- update values in stage "Build and Push Docker Image" with account ID, Repository name, region, 
+- update  lines 124 and 176 wiht your aws account ID i.e in the "Build and Push Docker Image" and "deploy to eks"stages 
 
 ### Run pipeline
 - Navigate back to jenkins and run the pipeline build

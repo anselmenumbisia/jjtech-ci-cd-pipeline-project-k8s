@@ -111,16 +111,14 @@ pipeline {
      }
 
     stage('Install docker') {
-          steps {
-                  sh "sudo usermod -aG docker jenkins"
-                  sh "sudo chown root:docker /var/run/docker.sock"
-                  sh "sudo chmod 660 /var/run/docker.sock"
-                  sh "sudo systemctl restart docker"
-                  sh "sudo systemctl status docker"
-                  sh "sudo systemctl enable docker"
-          }
-      }
-
+        steps {
+           sh "sudo yum install docker -y"
+           sh "sudo systemctl start docker"
+           sh "sudo systemctl enable docker"
+           sh "sudo usermod -aG docker jenkins"
+            }
+        }
+    
     stage('Build and Push Docker Image') {
       environment {
         awsAccountId = '124355672501'
@@ -131,6 +129,8 @@ pipeline {
       }
       steps {
         script {
+            
+            sh "sudo su - root"
 
             // Build the Docker image
             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
@@ -169,11 +169,12 @@ pipeline {
         environment {
         region = 'us-east-1'
         clusterName = 'jjtech-demo-cluster'
+        awsAccountId = '124355672501'
       }       
         steps {  
           script {
-            //sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"
-            sh "sed -i 's/replaceImageTag/latest/g' k8s-manifests/deployment.yaml"
+            sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"
+            sh "sed -i 's/replaceaccountid/${awsAccountId}/g' k8s-manifests/deployment.yaml"
             dir('k8s-manifests'){      
             sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
             sh "kubectl apply -f ."
