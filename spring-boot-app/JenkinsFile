@@ -131,11 +131,10 @@ pipeline {
         script {
 
             // Install docker on jenkins server
-
-            sh "sudo yum install docker -y" 
-            sh "sudo systemctl start docker"
-            sh "sudo systemctl  enable docker"
-            sh "sudo usermod -aG docker jenkins"
+            // sh "sudo yum install docker -y" 
+            // sh "sudo systemctl start docker"
+            // sh "sudo systemctl  enable docker"
+            // sh "sudo usermod -aG docker jenkins"
             // Build the Docker image
             sh "cd spring-boot-app && sudo docker build -t ${repositoryName}:${dockerImageTag} ."
 
