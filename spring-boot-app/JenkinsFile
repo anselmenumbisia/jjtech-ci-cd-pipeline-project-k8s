@@ -61,36 +61,15 @@ pipeline {
 
     }
 
-    // stage('Build and Test') {
-    //   steps {
-    //     // sh 'ls -ltr'
-    //     // builds the project and create a JAR file
-    //     sh 'cd spring-boot-app && mvn -U clean package'
-    //   }
+    stage('Build and Test') {
+      steps {
+        // sh 'ls -ltr'
+        // builds the project and create a JAR file
+        sh 'cd spring-boot-app && mvn -U clean package'
+      }
       
-    // }
-
-stages {
-        stage('Clean Maven Cache') {
-            steps {
-                script {
-                    // Remove specific cached artifacts
-                    sh 'rm -rf ~/.m2/repository/org/springframework/boot/spring-boot-starter-parent/2.2.4.RELEASE'
-
-                    // Alternatively, clear the entire Maven repository
-                    // sh 'rm -rf ~/.m2/repository/*'
-                }
-            }
-        }
-
-        stage('Build and Test') {
-            steps {
-                // Build the project and create a JAR file
-                sh 'cd spring-boot-app && mvn -U clean package'
-            }
-        }
     }
-}
+
 
 
     
