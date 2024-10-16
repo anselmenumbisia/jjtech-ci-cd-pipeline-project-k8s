@@ -70,16 +70,25 @@ pipeline {
       
     // }
 
-stage('Build and Test') {
-    steps {
-        // Optionally list files for debugging
-        // sh 'ls -ltr'
+stages {
+        stage('Clean Maven Cache') {
+            steps {
+                script {
+                    // Remove specific cached artifacts
+                    sh 'rm -rf ~/.m2/repository/org/springframework/boot/spring-boot-starter-parent/2.2.4.RELEASE'
 
-        // Navigate to the project directory and build with Maven
-        sh '''
-            cd spring-boot-app
-            mvn -U clean package -DaltDeploymentRepository=nexus::default::http://172.31.80.22:8081/repository/maven-releases/
-        '''
+                    // Alternatively, clear the entire Maven repository
+                    // sh 'rm -rf ~/.m2/repository/*'
+                }
+            }
+        }
+
+        stage('Build and Test') {
+            steps {
+                // Build the project and create a JAR file
+                sh 'cd spring-boot-app && mvn -U clean package'
+            }
+        }
     }
 }
 
