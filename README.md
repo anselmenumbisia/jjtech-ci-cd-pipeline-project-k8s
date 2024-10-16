@@ -32,7 +32,7 @@ sh jenkins-install.sh
 - After launching this Jenkins server, attach a tag as **Key=Application, value=jenkins**
 
 3) ###### SonarQube
-    - Create an Create an **Ubuntu 22.04** VM instance and call it "SonarQube"
+    - Create an Create an **Ubuntu 22.04** VM instance and call it (Gina used ubuntu 24)"SonarQube"
     - Instance type: t2.medium
     - Security Group (Open): 9000, 9100 and 22 to 0.0.0.0/0
     - Key pair: Select or create a new keypair
@@ -254,3 +254,5 @@ Once both the above steps are done click on Save.
 - Get public of workernode servers for cluster
 - modify security group to allow all inbound traffic from 30080 (The sample app deployed in the cluster is exposed using a NodepOrt service and the nodePort is 30080)
 - copy pulic ip of the cluster worker server and and run on browser. you need to add a colon and the nodePort number in order to access the application on the browser e.g http://example_ip:30080
+
+NB:Makesure to update or Change account ID in the deployment.yml in k8s-manifest dir(if not you will have issue in your pipeline at the level of docker in pipeline stages)(Gina added this)

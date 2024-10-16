@@ -3,12 +3,12 @@
 terraform {
   backend "s3" {
     # Replace this with your bucket name!
-    bucket         = "prosperous-bucket-2024"
-    key            = "jjtech/terraform.tfstate"
+    bucket         = "statefile-pipeline-project"
+    key            = "PipelineEKS/terraform.tfstate"
     region         = "us-east-1"
 
     # Replace this with your DynamoDB table name!
-    dynamodb_table = "prosperous-db"
+    dynamodb_table = "Statefile-lockid"
   }
   
   required_providers {

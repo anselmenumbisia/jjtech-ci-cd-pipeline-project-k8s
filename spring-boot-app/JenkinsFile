@@ -16,7 +16,7 @@ pipeline {
     stage('Git Checkout') {
       steps {
         echo 'Cloning the application code...'
-        git branch: 'main', url: 'https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git'
+        git branch: 'main', url: 'https://github.com/Ginasube/jjtech-ci-cd-pipeline-project-k8s.git'
       }
     }
 
@@ -89,7 +89,7 @@ pipeline {
     }
     stage('Static Code Analysis') {
       environment {
-        SONAR_URL = "http://172.31.88.246:9000/"
+        SONAR_URL = "http://172.31.90.218:9000/"
       }
       steps {
         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
@@ -121,7 +121,7 @@ pipeline {
     
     stage('Build and Push Docker Image') {
       environment {
-        awsAccountId = '124355672501'
+        awsAccountId = '841162703146'
         region = 'us-east-1'
         repositoryName = 'jjtech-demo'
         dockerImageTag = "${BUILD_NUMBER}"
@@ -169,7 +169,7 @@ pipeline {
         environment {
         region = 'us-east-1'
         clusterName = 'jjtech-demo-cluster'
-        awsAccountId = '124355672501'
+        awsAccountId = '841162703146'
       }       
         steps {  
           script {
