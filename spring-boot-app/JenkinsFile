@@ -20,13 +20,14 @@ pipeline {
       }
     }
 
-    stage('List Terraform Files') {
+stage('Test Git Checkout') {
     steps {
-        dir('terraform/eks-cluster-ec2') {
-            sh 'ls -la'
+        script {
+            sh 'git clone https://github.com/Ginasube/jjtech-ci-cd-pipeline-project-k8s.git'
         }
     }
 }
+
 
 
     stage('create eks cluster') {
