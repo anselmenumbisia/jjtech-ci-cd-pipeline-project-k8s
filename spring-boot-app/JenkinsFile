@@ -12,6 +12,7 @@ pipeline {
     jdk 'localJdk'
   }
 
+
   stages {
     stage('Git Checkout') {
       steps {
@@ -19,14 +20,6 @@ pipeline {
         git branch: 'main', url: 'https://github.com/Ginasube/jjtech-ci-cd-pipeline-project-k8s.git'
       }
     }
-
-stage('Test Git Checkout') {
-    steps {
-        script {
-            sh 'git clone https://github.com/Ginasube/jjtech-ci-cd-pipeline-project-k8s.git'
-        }
-    }
-}
 
 
 
