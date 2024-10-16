@@ -20,6 +20,15 @@ pipeline {
       }
     }
 
+    stage('List Terraform Files') {
+    steps {
+        dir('terraform/eks-cluster-ec2') {
+            sh 'ls -la'
+        }
+    }
+}
+
+
     stage('create eks cluster') {
      steps {
        script{
