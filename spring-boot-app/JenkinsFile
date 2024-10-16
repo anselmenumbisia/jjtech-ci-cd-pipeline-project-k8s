@@ -61,6 +61,18 @@ pipeline {
 
     }
 
+    stage('Clean Maven Cache') {
+    steps {
+        script {
+            // Clear specific cached artifacts
+            sh 'rm -rf ~/.m2/repository/org/springframework/boot/spring-boot-starter-parent/2.2.4.RELEASE'
+            // Alternatively, clear the entire cache
+            // sh 'rm -rf ~/.m2/repository/*'
+        }
+    }
+}
+
+
     stage('Build and Test') {
       steps {
         // sh 'ls -ltr'
