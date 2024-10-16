@@ -61,14 +61,29 @@ pipeline {
 
     }
 
-    stage('Build and Test') {
-      steps {
-        // sh 'ls -ltr'
-        // builds the project and create a JAR file
-        sh 'cd spring-boot-app && mvn -U clean package'
-      }
+    // stage('Build and Test') {
+    //   steps {
+    //     // sh 'ls -ltr'
+    //     // builds the project and create a JAR file
+    //     sh 'cd spring-boot-app && mvn -U clean package'
+    //   }
       
+    // }
+
+stage('Build and Test') {
+    steps {
+        // Optionally list files for debugging
+        // sh 'ls -ltr'
+
+        // Navigate to the project directory and build with Maven
+        sh '''
+            cd spring-boot-app
+            mvn -U clean package -DaltDeploymentRepository=nexus::default::http://172.31.80.22:8081/repository/maven-releases/
+        '''
     }
+}
+
+
     
     stage('Unit Test') {
          steps {
