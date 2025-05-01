@@ -40,12 +40,11 @@ sh jenkins-install.sh
     - Launch Instance
 
 4) ###### Nexus
-    - Create an **Amazon Linux 2** VM instance and call it "Nexus" !!! Do not use a linux2023 AMI
-    - Instance type: t2.medium
-    - Security Group (Open): 8081, 9100 and 22 to 0.0.0.0/0
-    - Key pair: Select or create a new keypair
-    - User data (Copy the following user data): https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s/blob/main/installation-scripts/nexus.sh
-    - Launch Instance
+## Install Nexus Repository Manager
+- Launch ec2-instance with OS: ubuntu 22.04 SSD Volume type, type:t2.medium
+- Security group should allow port 8081 for inbound traffic
+- User data (Copy the following user data) from [here](https://github.com/anselmenumbisia/jjtech-maven-sonarqube-nexus-prometheus-project/blob/main/installations/nexus-install.sh)
+- Launch Instance
 
 5) ######  S3 and Dynamodb
 - create s3 bucket and dynamodb table for terraform backend. Partition key for dynamo db must be "LockID"
@@ -168,7 +167,10 @@ Copy your Nexus Public IP Address and paste on the browser = http:://NexusServer
 
 1)  #### Setting up password:
     - SSH into Nexus server
-    - Execute `sudo cat /opt/nexus/sonatype-work/nexus3/admin.password`
+    - get the nexus intial password: 
+     ```bash
+     sudo docker exec nexus cat /nexus-data/admin.password
+     ```
     - Copy the default password
     - Now login into Nexus console with the username: admin & password (copied from the SSH above)
     - Once signed in fill the below details in the setup wizard
