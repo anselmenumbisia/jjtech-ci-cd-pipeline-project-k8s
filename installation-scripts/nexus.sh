@@ -1,54 +1,43 @@
 #!/bin/bash
+set -euxo pipefail
 
-# Update system packages
-yum update -y
+echo "=== Updating packages and installing prerequisites ==="
+apt-get update -y
+apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common \
+    gnupg \
+    lsb-release
 
-# Install Java 11 (required for Nexus)
-amazon-linux-extras enable corretto8
-yum install java-11-amazon-corretto -y
+echo "=== Installing Docker ==="
+if ! command -v docker &> /dev/null; then
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+      https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+      > /etc/apt/sources.list.d/docker.list
+    apt-get update -y
+    apt-get install -y docker-ce docker-ce-cli containerd.io
+fi
 
-# Create a nexus user
-useradd nexus
-echo "nexus  ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers
+echo "=== Enabling and starting Docker ==="
+systemctl enable docker
+systemctl start docker
 
-# Download Nexus
-cd /opt
-wget https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+echo "=== Creating Docker volume for Nexus data ==="
+docker volume create nexus-data
 
-# Extract Nexus
-tar -zxvf latest-unix.tar.gz
-mv nexus-* nexus
-chown -R nexus:nexus /opt/nexus
-chown -R nexus:nexus /opt/sonatype-work
+echo "=== Pulling Nexus Docker image ==="
+docker pull sonatype/nexus3
 
-# Create a nexus service
-cat <<EOF > /etc/systemd/system/nexus.service
-[Unit]
-Description=Nexus service
-After=network.target
+echo "=== Running Nexus container ==="
+docker run -d \
+  --name nexus \
+  -p 8081:8081 \
+  -v nexus-data:/nexus-data \
+  --restart=unless-stopped \
+  sonatype/nexus3
 
-[Service]
-Type=forking
-LimitNOFILE=65536
-ExecStart=/opt/nexus/bin/nexus start
-ExecStop=/opt/nexus/bin/nexus stop
-User=nexus
-Restart=on-abort
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Set run as nexus user in Nexus configuration
-sed -i 's/#run_as_user=""/run_as_user="nexus"/' /opt/nexus/bin/nexus.rc
-
-# Enable and start the Nexus service
-systemctl enable nexus
-systemctl start nexus
-
-# Open firewall for Nexus (port 8081)
-firewall-cmd --zone=public --add-port=8081/tcp --permanent
-firewall-cmd --reload
-
-# Check Nexus status
-systemctl status nexus
+echo "=== Nexus installation complete ==="
