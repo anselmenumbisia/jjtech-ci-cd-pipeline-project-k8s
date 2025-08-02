@@ -24,7 +24,7 @@ pipeline {
      steps {
        script{
          dir ('eks-blueprint') {
-           sh 'terraform init -upgrade'
+           sh 'terraform init'
            sh 'terraform fmt'
            sh 'terraform validate'
            sh 'terraform plan -out=tfplan'
