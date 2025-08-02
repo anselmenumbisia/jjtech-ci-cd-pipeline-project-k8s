@@ -23,8 +23,8 @@ pipeline {
     stage('create eks cluster') {
      steps {
        script{
-         dir ('terraform/eks-cluster-ec2') {
-           sh 'terraform init -upgrade'
+         dir ('eks-blueprint') {
+           sh 'terraform init'
            sh 'terraform fmt'
            sh 'terraform validate'
            sh 'terraform plan -out=tfplan'
@@ -168,7 +168,7 @@ pipeline {
     stage("Deploy to EKS"){
         environment {
         region = 'us-east-1'
-        clusterName = 'jjtech-demo-cluster'
+        clusterName = 'eks-blueprint'
         awsAccountId = '124355672501'
       }       
         steps {  
@@ -191,7 +191,7 @@ pipeline {
     stage('destroy') {
         steps {
             script{
-              dir ('terraform/eks-cluster-ec2') {
+              dir ('eks-blueprint') {
               unstash 'terraform-plan'
               sh 'terraform destroy -auto-approve'
               }
