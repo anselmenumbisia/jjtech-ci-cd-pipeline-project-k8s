@@ -139,6 +139,15 @@ pipeline {
                 }
             }
         }
+
+        stage('Delete EKS Cluster') {
+            steps {
+                input "Do you want to delete the EKS cluster?"
+                sh '''
+                    eksctl delete cluster --name $EKS_CLUSTER_NAME --region $AWS_DEFAULT_REGION
+                '''
+            }
+        }
     }
 }
 
