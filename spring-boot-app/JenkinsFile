@@ -1,205 +1,344 @@
 pipeline {
-  agent any
-  
-  environment {
-        WORKSPACE = "${env.WORKSPACE}"
+    agent any
+    environment {
         AWS_DEFAULT_REGION = "us-east-1"
+        EKS_CLUSTER_NAME = "eks-cluster"
+        EKS_NODE_TYPE = "t2.medium"
+        EKS_NODE_COUNT = "3"
+        AWS_ACCOUNT_ID = '124355672501'
+        ECR_REPOSITORY = 'jjtech-demo'
+        DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
     }
-
-  tools {
-    terraform 'terraform'
-    maven 'localMaven'
-    jdk 'localJdk'
-  }
-
-  stages {
-    stage('Git Checkout') {
-      steps {
-        echo 'Cloning the application code...'
-        git branch: 'main', url: 'https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git'
-      }
+    tools {
+        maven 'localMaven'
+        jdk 'localJdk'
     }
-
-    stage('create eks cluster') {
-     steps {
-       script{
-         dir ('eks-blueprint') {
-           sh 'terraform init'
-           sh 'terraform fmt'
-           sh 'terraform validate'
-           sh 'terraform plan -out=tfplan'
-           stash includes: 'tfplan', name: 'terraform-plan'
-         }
-       }
-     }
-     post {
-         success {
-             archiveArtifacts artifacts: 'terraform/eks-cluster-ec2/tfplan', onlyIfSuccessful: true
-         }
-    }
-
-    }
-
-    stage('approval') {
+    stages {
+        stage('Git Checkout') {
             steps {
-                input "Please review the Terraform plan and click 'Proceed' to apply it"
+                echo 'Cloning the application code...'
+                git branch: 'main', url: 'https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git'
             }
         }
-
-    stage('apply') {
-        steps {
-          script{
-            dir ('terraform/eks-cluster-ec2') {
-            unstash 'terraform-plan'
-            sh 'terraform apply -auto-approve tfplan'
-            }
-        }
-    }
-
-    }
-
-    stage('Build and Test') {
-      steps {
-        // sh 'ls -ltr'
-        // builds the project and create a JAR file
-        sh 'cd spring-boot-app && mvn -U clean package'
-      }
-      
-    }
-    
-    stage('Unit Test') {
-         steps {
-             sh 'cd spring-boot-app && mvn test'
-         }
-       }
-    stage('Integration Test') {
-        steps {
-            sh 'cd spring-boot-app && mvn verify -DskipUnitTests'
-        }
-    }
-    stage('Checkstyle Code Analysis') {
-        steps {
-            sh 'cd spring-boot-app && mvn checkstyle:checkstyle'
-        }
-        post {
-            success {
-                echo 'Generated Analysis Result'
-            }
-        }
-    }
-    stage('Static Code Analysis') {
-      environment {
-        SONAR_URL = "http://172.31.89.185:9000/"
-      }
-      steps {
-        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
-          sh 'cd spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
-        }
-      }
-    }
-
-    stage('Upload artifact to Nexus') {
-       steps {
-           withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
-           sh "sed -i \"s/.*<username><\\/username>/<username>$USER_NAME<\\/username>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
-           sh "sed -i \"s/.*<password><\\/password>/<password>$PASSWORD<\\/password>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
-           sh 'sudo cp ${WORKSPACE}/nexus-setup/settings.xml /var/lib/jenkins/.m2'
-           sh 'cd spring-boot-app && mvn clean deploy -DskipTests'
-           }
-          
-       }
-     }
-
-    stage('Install docker') {
-        steps {
-           sh "sudo yum install docker -y"
-           sh "sudo systemctl start docker"
-           sh "sudo systemctl enable docker"
-           sh "sudo usermod -aG docker jenkins"
-            }
-        }
-    
-    stage('Build and Push Docker Image') {
-      environment {
-        awsAccountId = '124355672501'
-        region = 'us-east-1'
-        repositoryName = 'jjtech-demo'
-        dockerImageTag = "${BUILD_NUMBER}"
-        ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
-      }
-      steps {
-        script {
-            
-            sh "sudo su - root"
-
-            // Build the Docker image
-            sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
-
-            // Authenticate and push the Docker image to ECR
-                sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
-                sh "sudo docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker rmi ${repositoryName}:${dockerImageTag}"
-      }
-    }
-
-    } 
-    
-    stage('Install kubectl') {
+        stage('Install eksctl if needed') {
             steps {
                 sh '''
-                    # Specify the kubectl version
+                    if ! command -v eksctl >/dev/null 2>&1; then
+                        ARCH=amd64
+                        PLATFORM=$(uname -s)_$ARCH
+                        curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+                        curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+                        tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+                        sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+                    else
+                        echo "eksctl already installed"
+                    fi
+                '''
+            }
+        }
+        stage('Create EKS Cluster') {
+            steps {
+                sh '''
+                    if aws eks describe-cluster --name $EKS_CLUSTER_NAME --region $AWS_DEFAULT_REGION >/dev/null 2>&1; then
+                        echo "EKS cluster $EKS_CLUSTER_NAME already exists. Skipping creation."
+                    else
+                        eksctl create cluster \
+                            --name $EKS_CLUSTER_NAME \
+                            --region $AWS_DEFAULT_REGION \
+                            --nodegroup-name standard-workers \
+                            --node-type $EKS_NODE_TYPE \
+                            --nodes $EKS_NODE_COUNT \
+                            --nodes-min $EKS_NODE_COUNT \
+                            --nodes-max $EKS_NODE_COUNT
+                    fi
+                    aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
+                '''
+            }
+        }
+        stage('Build and Test') {
+            steps {
+                sh 'cd spring-boot-app && mvn -U clean package'
+            }
+        }
+        stage('Unit Test') {
+            steps {
+                sh 'cd spring-boot-app && mvn test'
+            }
+        }
+        stage('Integration Test') {
+            steps {
+                sh 'cd spring-boot-app && mvn verify -DskipUnitTests'
+            }
+        }
+        stage('Checkstyle Code Analysis') {
+            steps {
+                sh 'cd spring-boot-app && mvn checkstyle:checkstyle'
+            }
+            post {
+                success {
+                    echo 'Generated Analysis Result'
+                }
+            }
+        }
+        stage('Static Code Analysis') {
+            environment {
+                SONAR_URL = "http://172.31.89.185:9000/"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
+                    sh 'cd spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+                }
+            }
+        }
+        stage('Upload artifact to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
+                    sh "sed -i \"s/.*<username><\\/username>/<username>$USER_NAME<\\/username>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
+                    sh "sed -i \"s/.*<password><\\/password>/<password>$PASSWORD<\\/password>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
+                    sh 'sudo cp ${WORKSPACE}/nexus-setup/settings.xml /var/lib/jenkins/.m2'
+                    sh 'cd spring-boot-app && mvn clean deploy -DskipTests'
+                }
+            }
+        }
+        stage('Install docker') {
+            steps {
+                sh "sudo yum install docker -y"
+                sh "sudo systemctl start docker"
+                sh "sudo systemctl enable docker"
+                sh "sudo usermod -aG docker jenkins"
+            }
+        }
+        stage('Build and Push Docker Image') {
+            steps {
+                sh "cd spring-boot-app && docker build -t ${ECR_REPOSITORY}:${DOCKER_IMAGE_TAG} ."
+                sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                sh "docker tag ${ECR_REPOSITORY}:${DOCKER_IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+                sh "docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+                sh "docker rmi ${ECR_REGISTRY}/${ECR_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+                sh "docker rmi ${ECR_REPOSITORY}:${DOCKER_IMAGE_TAG}"
+            }
+        }
+        stage('Install kubectl') {
+            steps {
+                sh '''
                     KUBECTL_VERSION="v1.24.0"
-
-                    # Download kubectl binary
                     curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
-
-                    # Make the kubectl binary executable
                     sudo chmod +x kubectl
-
-                    # Move kubectl binary to a directory in the PATH
                     sudo mv kubectl /usr/local/bin/
                 '''
             }
         }
+        stage("Deploy to EKS") {
+            steps {
+                sh "sed -i 's/replaceImageTag/${DOCKER_IMAGE_TAG}/g' k8s-manifests/deployment.yaml"
+                sh "sed -i 's/replaceaccountid/${AWS_ACCOUNT_ID}/g' k8s-manifests/deployment.yaml"
+                dir('k8s-manifests') {
+                    sh "aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME} --region ${AWS_DEFAULT_REGION}"
+                    sh "kubectl apply -f ."
+                }
+            }
+        }
+    }
+}
+
+
+
+// pipeline {
+//   agent any
+  
+//   environment {
+//         WORKSPACE = "${env.WORKSPACE}"
+//         AWS_DEFAULT_REGION = "us-east-1"
+//     }
+
+//   tools {
+//     terraform 'terraform'
+//     maven 'localMaven'
+//     jdk 'localJdk'
+//   }
+
+//   stages {
+//     stage('Git Checkout') {
+//       steps {
+//         echo 'Cloning the application code...'
+//         git branch: 'main', url: 'https://github.com/anselmenumbisia/jjtech-ci-cd-pipeline-project-k8s.git'
+//       }
+//     }
+
+//     stage('Install eksctl') {
+//     steps {
+//         sh '''
+//             ARCH=amd64
+//             PLATFORM=$(uname -s)_$ARCH
+
+//             curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+//             curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+//             tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+//             sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+//         '''
+//     }
+// }
+//     stage('approval') {
+//             steps {
+//                 input "Please review the Terraform plan and click 'Proceed' to apply it"
+//             }
+//         }
+
+//     stage('apply') {
+//         steps {
+//           script{
+//             dir ('terraform/eks-cluster-ec2') {
+//             unstash 'terraform-plan'
+//             sh 'terraform apply -auto-approve tfplan'
+//             }
+//         }
+//     }
+
+//     }
+
+//     stage('Build and Test') {
+//       steps {
+//         // sh 'ls -ltr'
+//         // builds the project and create a JAR file
+//         sh 'cd spring-boot-app && mvn -U clean package'
+//       }
+      
+//     }
+    
+//     stage('Unit Test') {
+//          steps {
+//              sh 'cd spring-boot-app && mvn test'
+//          }
+//        }
+//     stage('Integration Test') {
+//         steps {
+//             sh 'cd spring-boot-app && mvn verify -DskipUnitTests'
+//         }
+//     }
+//     stage('Checkstyle Code Analysis') {
+//         steps {
+//             sh 'cd spring-boot-app && mvn checkstyle:checkstyle'
+//         }
+//         post {
+//             success {
+//                 echo 'Generated Analysis Result'
+//             }
+//         }
+//     }
+//     stage('Static Code Analysis') {
+//       environment {
+//         SONAR_URL = "http://172.31.89.185:9000/"
+//       }
+//       steps {
+//         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
+//           sh 'cd spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+//         }
+//       }
+//     }
+
+//     stage('Upload artifact to Nexus') {
+//        steps {
+//            withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
+//            sh "sed -i \"s/.*<username><\\/username>/<username>$USER_NAME<\\/username>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
+//            sh "sed -i \"s/.*<password><\\/password>/<password>$PASSWORD<\\/password>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
+//            sh 'sudo cp ${WORKSPACE}/nexus-setup/settings.xml /var/lib/jenkins/.m2'
+//            sh 'cd spring-boot-app && mvn clean deploy -DskipTests'
+//            }
+          
+//        }
+//      }
+
+//     stage('Install docker') {
+//         steps {
+//            sh "sudo yum install docker -y"
+//            sh "sudo systemctl start docker"
+//            sh "sudo systemctl enable docker"
+//            sh "sudo usermod -aG docker jenkins"
+//             }
+//         }
+    
+//     stage('Build and Push Docker Image') {
+//       environment {
+//         awsAccountId = '124355672501'
+//         region = 'us-east-1'
+//         repositoryName = 'jjtech-demo'
+//         dockerImageTag = "${BUILD_NUMBER}"
+//         ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
+//       }
+//       steps {
+//         script {
+            
+//             sh "sudo su - root"
+
+//             // Build the Docker image
+//             sh "cd spring-boot-app && docker build -t ${repositoryName}:${dockerImageTag} ."
+
+//             // Authenticate and push the Docker image to ECR
+//                 sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
+//                 sh "sudo docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+//                 sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+//                 sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+//                 sh "docker rmi ${repositoryName}:${dockerImageTag}"
+//       }
+//     }
+
+//     } 
+    
+//     stage('Install kubectl') {
+//             steps {
+//                 sh '''
+//                     # Specify the kubectl version
+//                     KUBECTL_VERSION="v1.24.0"
+
+//                     # Download kubectl binary
+//                     curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+
+//                     # Make the kubectl binary executable
+//                     sudo chmod +x kubectl
+
+//                     # Move kubectl binary to a directory in the PATH
+//                     sudo mv kubectl /usr/local/bin/
+//                 '''
+//             }
+//         }
         
 
-    stage("Deploy to EKS"){
-        environment {
-        region = 'us-east-1'
-        clusterName = 'eks-blueprint'
-        awsAccountId = '124355672501'
-      }       
-        steps {  
-          script {
-            sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"
-            sh "sed -i 's/replaceaccountid/${awsAccountId}/g' k8s-manifests/deployment.yaml"
-            dir('k8s-manifests'){      
-            sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
-            sh "kubectl apply -f ."
-      }
-        }
-      }
-    }
+//     stage("Deploy to EKS"){
+//         environment {
+//         region = 'us-east-1'
+//         clusterName = 'eks-cluster'
+//         awsAccountId = '124355672501'
+//       }       
+//         steps {  
+//           script {
+//             sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' k8s-manifests/deployment.yaml"
+//             sh "sed -i 's/replaceaccountid/${awsAccountId}/g' k8s-manifests/deployment.yaml"
+//             dir('k8s-manifests'){      
+//             sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
+//             sh "kubectl apply -f ."
+//       }
+//         }
+//       }
+//     }
   
-    stage('approve destroy for terraform') {
-            steps {
-                input "Do you want to Proceed to destroy terraform resources"
-            }
-        }
-    stage('destroy') {
-        steps {
-            script{
-              dir ('eks-blueprint') {
-              unstash 'terraform-plan'
-              sh 'terraform destroy -auto-approve'
-              }
-           }
-            }
-        }
+//     stage('approve destroy for terraform') {
+//             steps {
+//                 input "Do you want to Proceed to destroy terraform resources"
+//             }
+//         }
+//     stage('destroy') {
+//         steps {
+//             script{
+//               dir ('eks-blueprint') {
+//               unstash 'terraform-plan'
+//               sh 'terraform destroy -auto-approve'
+//               }
+//            }
+//             }
+//         }
 
 
-  }
-}
+//   }
+// }
 
